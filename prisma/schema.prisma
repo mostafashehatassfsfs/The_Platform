@@ -151,12 +151,17 @@ model StudentProfile {
 }
 
 model TopAchiever {
-  id          String   @id @default(uuid())
-  student_id  String?  // links to student User if they are registered
-  name        String
-  result_line String
-  photo_url   String
-  created_at  String   // ISO string
+  id             String   @id @default(uuid())
+  student_id     String?  // links to student User if they are registered
+  name           String
+  result_line    String
+  photo_url      String?
+  display_order  Int      @default(0) // Controls sequence on landing page; lower numbers appear first
+  created_at     String   // ISO string
 }
 
-
+model AchieversSettings {
+  id                        String   @id @default(uuid())
+  achievers_homepage_count  Int      @default(6) // Number of achievers to display on public landing page
+  updated_at                String   // ISO string
+}
