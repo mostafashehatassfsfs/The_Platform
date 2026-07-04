@@ -2,7 +2,6 @@ import { Router, Response, NextFunction } from "express";
 import { authenticateJWT, AuthenticatedRequest } from "../middleware/auth";
 import { requireRole } from "../middleware/roles";
 import { prisma } from "../config/prisma";
-import { StorageProvider } from "../services/storage";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -319,7 +318,7 @@ router.delete("/:id", authenticateJWT, requireRole("teacher"), async (req: Authe
   }
 });
 
-// Upload Cover Image (Teacher ONLY)
+// Upload Cover Image (Teacher ONLY) - Simple file save to public uploads
 router.post("/upload-cover", authenticateJWT, requireRole("teacher"), upload.single("cover"), async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (!req.file) {
@@ -327,13 +326,20 @@ router.post("/upload-cover", authenticateJWT, requireRole("teacher"), upload.sin
       return;
     }
 
-    // Save public file using StorageProvider
-    const fileUrl = await StorageProvider.saveFile(req.file, true);
+    // Simple save to public uploads directory
+    const publicUploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(publicUploadsDir)) {
+      fs.mkdirSync(publicUploadsDir, { recursive: true });
+    }
+
+    const filename = `cover-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(req.file.originalname)}`;
+    const filepath = path.join(publicUploadsDir, filename);
+    
+    fs.writeFileSync(filepath, req.file.buffer);
+    const fileUrl = `/uploads/${filename}`;
+    
     res.json({ url: fileUrl });
   } catch (err) {
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      await fs.promises.unlink(req.file.path).catch(() => {});
-    }
     next(err);
   }
 });

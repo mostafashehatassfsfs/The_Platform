@@ -99,7 +99,7 @@ router.put("/settings/registration-config", authenticateJWT, requireRole("teache
   }
 });
 
-// 3. GET Top Achievers from database
+// 3. GET Top Achievers from database (PUBLIC - used by landing page)
 router.get("/achievers", async (req, res, next) => {
   try {
     const achievers = await prisma.topAchiever.findMany({
@@ -206,7 +206,7 @@ router.get("/", authenticateJWT, requireRole("teacher"), async (req: Authenticat
     // Fetch transactions and enrollments and quiz attempts for statistics
     const transactions = await prisma.walletTransaction.findMany();
     const enrollments = await prisma.enrollment.findMany();
-    const quizAttempts = await prisma.quizAttempt ? await prisma.quizAttempt.findMany() : [];
+    const quizAttempts = await prisma.quizAttempt.findMany();
 
     const enrichedStudents = studentsList.map(student => {
       // Calculate balance
